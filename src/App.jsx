@@ -1,37 +1,63 @@
+import { useRef, useState } from "react";
 import "./app.css";
-import AcidSquares from "./components/AcidSquares.jsx";
+import MoltenMetal from "./components/MoltenMetal/MoltenMetal.jsx";
+import { Visualizer } from "./components/Visualizer/Visualizer.jsx";
+import AudioVolumeMeter from "./components/Visualizer/AudioVolumeMeter.jsx";
+import SongMP from "./components/Visualizer/song.mp3";
+import { streamToBlob } from "./API/ElevenLabs.js";
 
 function App() {
-    return (
-        <div className="App">
-            <div className="Background">
-                <AcidSquares
-                    color1="#5227FF"
-                    color2="#A855F7"
-                    color3="#FFFFFF"
-                    detail="medium"
-                    speed={0.7}
-                    waveDepth={1}
-                    zoom={1.3}
-                    density={10}
-                    glow={1}
-                    exposure={2700}
-                    spread={0.3}
-                    stepSize={0.002}
-                    colorShift={0}
-                    contrast={1}
-                    brightness={1}
-                    opacity={1}
-                    mouseInteraction
-                    mouseStrength={0.1}
-                    mouseRadius={0.35}
-                    blur={0}
-                    grain
-                    grainIntensity={0.05}
-                /></div>
+  const songRef = useRef(null);
+  const [volume, setVolume] = useState(0);
+  const [currentAudioSrc, setCurrentAudioSrc] = useState(SongMP);
 
-        </div>
-    )
+  return (
+    <div className="App">
+      <div className="Background">
+        <MoltenMetal
+          color1="#5227FF"
+          color2="#FF9FFC"
+          color3="#FFFFFF"
+          speed={0.35}
+          scale={4}
+          detail={3}
+          glow={1.6}
+          coreSize={0.1}
+          swirl={1}
+          fold={-0.2}
+          blackPoint={0.05}
+          brightness={1.3}
+          colorMode="molten"
+          grain
+          grainIntensity={0.05}
+          mouseInteraction
+          mouseStrength={0.3}
+          opacity={1}
+        />
+      </div>
+      {songRef && <Visualizer volume={volume} audioRef={songRef} />}
+      <AudioVolumeMeter
+        audioRef={songRef}
+        volume={volume}
+        setVolume={setVolume}
+      />
+      <div style={{ position: "relative" }}>
+        <audio controls src={currentAudioSrc} ref={songRef} />
+        <button
+          onClick={() =>
+            streamToBlob(
+              "Бар жоголчу алкаш десе, башы иштебеген иттин баласы !",
+              songRef,
+            ).then((res) => {
+              setCurrentAudioSrc(res);
+            })
+          }
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
