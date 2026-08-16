@@ -43,7 +43,7 @@ const ChatBot = () => {
               </div>
               <div className="ChatBot__chatBox_header-info">
                 <Logo />
-                <span>v1.0</span>
+                <span>v1.0 Beta</span>
               </div>
             </div>
 
