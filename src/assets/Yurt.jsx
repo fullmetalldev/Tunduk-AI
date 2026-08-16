@@ -1,6 +1,7 @@
-const YurtIcon = () => {
+const YurtIcon = ({ className }) => {
   return (
     <svg
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 200 200"
       width="100%"
@@ -18,15 +19,15 @@ const YurtIcon = () => {
         r="82"
         fill="none"
         stroke="#240b3d"
-        stroke-width="16"
+        strokeWidth="16"
       />
 
       <g
-        clip-path="url(#inner-circle)"
+        clipPath="url(#inner-circle)"
         fill="none"
         stroke="#240b3d"
-        stroke-width="6"
-        stroke-linecap="round"
+        strokeWidth="6"
+        strokeLinecap="round"
       >
         <path d="M 40 180 Q 100 80 180 40" />
         <path d="M 25 165 Q 85 65 165 25" />

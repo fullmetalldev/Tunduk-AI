@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Visualizer } from "../../components/Visualizer/Visualizer.jsx";
 import AudioVolumeMeter from "../../components/Visualizer/AudioVolumeMeter.jsx";
 // import { streamToBlob } from "../../api/ElevenLabs.js";
@@ -6,11 +6,22 @@ import SongMP from "../../components/Visualizer/song.mp3";
 import "./ChatBot.scss";
 import Logo from "../../components/Logo/Logo.jsx";
 import YurtIcon from "../../assets/Yurt.jsx";
+import Button from "../../components/Button/Button.jsx";
 
 const ChatBot = () => {
   const songRef = useRef(null);
   const [volume, setVolume] = useState(0);
   const [currentAudioSrc, setCurrentAudioSrc] = useState(SongMP);
+  const [botState, setBotState] = useState("thinking");
+
+  useEffect(() => {
+    const audio = songRef.current;
+    if (!audio) return;
+    const handleEnded = () => {
+      setBotState("thinking");
+    };
+    audio.addEventListener("ended", handleEnded);
+  }, []);
 
   return (
     <>
@@ -38,9 +49,25 @@ const ChatBot = () => {
 
             <div className="ChatBot__chatBox_content">
               <div className="ChatBot__chatBox_content-bot">
-                <YurtIcon />
-                {songRef && <Visualizer volume={volume} audioRef={songRef} />}
+                <YurtIcon
+                  className={botState === "speaking" ? "speakingBot" : ""}
+                />
+                {songRef && (
+                  <Visualizer
+                    state={botState}
+                    volume={volume}
+                    audioRef={songRef}
+                  />
+                )}
               </div>
+              <Button
+                onClick={() => {
+                  setBotState("speaking");
+                  songRef.current.play();
+                }}
+              >
+                Talk
+              </Button>
             </div>
           </div>
         </div>
