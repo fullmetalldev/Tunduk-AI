@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { createAnalyser } from "./audioGraph";
+import { createAnalyser } from "./Audiograph.js";
 
 export default function AudioVolumeMeter({ audioRef, setVolume }) {
   const rafIdRef = useRef(null);
