@@ -1,6 +1,6 @@
-import { ElevenLabsClient, play } from "@elevenlabs/elevenlabs-js";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
-export const streamToBlob = async (text, songRef) => {
+export const streamToBlob = async (text) => {
   const stream = await generateElevenTextToSpeech(text);
   const reader = stream.getReader();
   const chunks = [];

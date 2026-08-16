@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createAnalyser } from "./audioGraph";
 
-export default function AudioVolumeMeter({ audioRef, volume, setVolume }) {
+export default function AudioVolumeMeter({ audioRef, setVolume }) {
   const rafIdRef = useRef(null);
 
   useEffect(() => {
@@ -29,6 +29,7 @@ export default function AudioVolumeMeter({ audioRef, volume, setVolume }) {
       try {
         analyser.disconnect();
       } catch (e) {
+        console.log(e);
         // already disconnected
       }
     };
