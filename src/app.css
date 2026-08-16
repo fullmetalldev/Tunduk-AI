@@ -1,8 +1,75 @@
 .Background {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: #160d28;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  background: #160d28;
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+:root {
+  --color-white: #fff;
+  --color-white-10: #ffffff10;
+  --color-white-20: #ffffff20;
+  --color-white-40: #ffffff40;
+  --color-white-80: #ffffff80;
+  --color-secondary: #cbd5e1;
+  --color-black: #0b0810;
+  --color-purple: #b84cff;
+  --color-dark-purple: #5a189a;
+  --color-dark-pur: #240b3d;
+  --font-small: 14px;
+  --font-medium: 18px;
+  --font-large: 38px;
+  --border-30: 30px;
+  --border-15: 15px;
+}
+
+.circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+.bg-red {
+  background: red;
+}
+.bg-yellow {
+  background: yellow;
+}
+.bg-green {
+  background: green;
+}
+
+body {
+  background-color: var(--color-dark-pur);
+}
+
+.head-1 {
+  font-size: var(--font-large);
+}
+.sub-1 {
+  font-size: var(--font-medium);
+}
+
+.tag {
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-30);
+  background: var(--color-white-20);
+  padding: 5px 15px;
+  font-size: var(--font-small);
+  color: var(--color-white);
+}
+
+@media (max-width: 1250px) {
+  .container {
+    padding: 0 15px;
+  }
 }

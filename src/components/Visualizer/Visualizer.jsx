@@ -1,6 +1,7 @@
 import { Orb } from "orb-ui";
 
 export function Visualizer({ state, volume }) {
-  console.log(volume);
-  return <Orb state={"speaking"} volume={volume / 20} theme="circle" />;
+  return (
+    <Orb size={300} state={"connecting"} volume={volume / 20} theme="circle" />
+  );
 }

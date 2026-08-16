@@ -1,0 +1,47 @@
+.ChatBot {
+  padding: 60px 0;
+  &__chatBox {
+    border-radius: var(--border-15);
+    border: 1px solid var(--color-white-40);
+    overflow: hidden;
+    &_content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      &-bot {
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 300px;
+        height: 300px;
+        position: relative;
+        svg {
+          position: absolute;
+          width: 50%;
+          height: 50%;
+          z-index: 2;
+        }
+      }
+    }
+    &_header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: var(--color-white-20);
+      padding: 10px 15px;
+      &-info {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--color-white-80);
+      }
+      &-buttons {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    }
+  }
+}

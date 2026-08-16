@@ -1,0 +1,30 @@
+.About {
+  position: relative;
+  z-index: 99;
+  padding: 120px 0;
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    .Button {
+      margin-top: 15px;
+    }
+
+    &_title {
+      margin-top: 15px;
+      color: var(--color-white);
+    }
+    &_subtitle {
+      text-shadow: offset-x offset-y blur-radius color;
+      margin-top: 15px;
+      color: var(--color-white-40);
+    }
+    .tag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  }
+}
