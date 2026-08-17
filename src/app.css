@@ -39,13 +39,13 @@
 }
 
 .bg-red {
-  background: red;
+  background: red !important;
 }
 .bg-yellow {
   background: yellow;
 }
 .bg-green {
-  background: green;
+  background: green !important;
 }
 
 body {
