@@ -1,6 +1,6 @@
 import { useScribe, CommitStrategy } from "@elevenlabs/react";
-import { getElevenAuth, streamToBlob } from "../api/ElevenLabs";
-import { GptResponse } from "../api/OpenAI";
+import { getElevenAuth, streamToBlob } from "../api/ElevenLabs.js";
+import { GptResponse } from "../api/OpenAI.js";
 import { saveChatMessage } from "../lib/chatHistory";
 import { useEffect, useRef } from "react";
 import Song from "../lib/muras_mirbek.mp3";
