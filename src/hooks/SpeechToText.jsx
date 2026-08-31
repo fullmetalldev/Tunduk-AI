@@ -1,9 +1,9 @@
 import { useScribe, CommitStrategy } from "@elevenlabs/react";
-import { getElevenAuth, streamToBlob } from "../api/ElevenLabs.js";
-import { GptResponse } from "../api/OpenAI.js";
+import { GptResponse } from "../api/OpenAI";
 import { saveChatMessage } from "../lib/chatHistory";
 import { useEffect, useRef } from "react";
 import Song from "../lib/muras_mirbek.mp3";
+import { getElevenAuth, streamToBlob } from "../api/ElevenLabs";
 
 function SpeechToText({ botState, setBotState, onAudioGenerated }) {
   const isConnectingRef = useRef(false);
