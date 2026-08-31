@@ -9,7 +9,7 @@ import YurtIcon from "../../assets/Yurt.jsx";
 import Button from "../../components/Button/Button.jsx";
 import DroppCall from "../../lib/callDrop.wav";
 import JoinCall from "../../lib/callJoin.wav";
-import SpeechToText from "../../api/SpeechToText";
+import SpeechToText from "../../hooks/SpeechToText.jsx";
 
 const ChatBot = () => {
   const currentAudioRef = useRef(null);
