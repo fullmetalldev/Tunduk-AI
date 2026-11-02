@@ -35,6 +35,13 @@
       }
     }
 
+    &_call {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
     &_content {
       display: flex;
       flex-direction: column;
@@ -90,6 +97,61 @@
         gap: 10px;
       }
     }
+  }
+}
+
+// Active call: the chat box covers the whole screen, orb + controls on one
+// side and the captions on the other (stacked on narrow screens).
+.ChatBot--fullscreen .ChatBot__chatBox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 0;
+  background: rgba(11, 8, 16, 0.7);
+  backdrop-filter: blur(20px);
+  animation: ChatBotOpen 0.3s ease-out;
+
+  .ChatBot__chatBox_content {
+    flex: 1;
+    min-height: 0;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .ChatMessages {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    max-width: none;
+  }
+
+  @media (min-width: 900px) {
+    .ChatBot__chatBox_content {
+      flex-direction: row;
+      align-items: stretch;
+      gap: 40px;
+    }
+
+    .ChatBot__chatBox_call {
+      justify-content: center;
+      flex-shrink: 0;
+    }
+  }
+}
+
+@keyframes ChatBotOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
