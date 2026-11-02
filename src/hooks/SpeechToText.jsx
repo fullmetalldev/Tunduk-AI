@@ -1,9 +1,6 @@
 import { useScribe, CommitStrategy } from "@elevenlabs/react";
-import { saveChatTurn } from "../lib/chatHistory";
 import { useEffect, useRef } from "react";
-import Song from "../lib/muras_mirbek.mp3";
-import { getElevenAuth, textToSpeechUrl } from "../api/ElevenLabs";
-import { GptResponse } from "../api/OpenAI";
+import { getElevenAuth } from "../api/ElevenLabs";
 
 // Words Scribe should be biased towards (max 50, up to 20 characters each):
 // the bot's own names and words it tends to mishear in Kyrgyz.
@@ -23,20 +20,26 @@ const KEYTERMS = [
   "рахмат",
 ];
 
-function SpeechToText({ botState, setBotState, onAudioGenerated, voiceId }) {
+/**
+ * Listens to the user while a call is active. Only speech-to-text lives here;
+ * what to do with the words is up to the parent:
+ * - onPartial(text): the user is speaking, text so far (for live captions)
+ * - onUtterance(text): the user finished a phrase while the bot was listening
+ */
+function SpeechToText({ botState, setBotState, onPartial, onUtterance }) {
   const isConnectingRef = useRef(false);
   // useScribe captures its callbacks once at connect time, so everything they
   // read must go through refs to see the current value instead of a stale one.
   const botStateRef = useRef(botState);
-  const voiceIdRef = useRef(voiceId);
-  const onAudioGeneratedRef = useRef(onAudioGenerated);
-  // Bumped on every hang up so responses from a finished call are dropped.
+  const onPartialRef = useRef(onPartial);
+  const onUtteranceRef = useRef(onUtterance);
+  // Bumped on every hang up so a connect that finishes late is dropped.
   const callIdRef = useRef(0);
 
   useEffect(() => {
     botStateRef.current = botState;
-    voiceIdRef.current = voiceId;
-    onAudioGeneratedRef.current = onAudioGenerated;
+    onPartialRef.current = onPartial;
+    onUtteranceRef.current = onUtterance;
   });
 
   const updateBotState = (state) => {
@@ -59,7 +62,7 @@ function SpeechToText({ botState, setBotState, onAudioGenerated, voiceId }) {
     noVerbatim: true,
     filterBackgroundAudio: true,
     onPartialTranscript: (data) => {
-      console.log("Partial:", data.text);
+      if (botStateRef.current === "listening") onPartialRef.current?.(data.text);
     },
     onCommittedTranscript: (data) => {
       const text = data.text?.trim();
@@ -71,48 +74,12 @@ function SpeechToText({ botState, setBotState, onAudioGenerated, voiceId }) {
       if (!text || botStateRef.current !== "listening") return;
 
       updateBotState("thinking");
-      generateBotResponse(text, callIdRef.current);
+      onUtteranceRef.current?.(text);
     },
     onError: (error) => {
       console.error("Scribe error:", error);
     },
   });
-
-  // Call OpenAI to generate response and then convert to speech
-  const generateBotResponse = async (userText, callId) => {
-    const isStale = () => callId !== callIdRef.current;
-    try {
-      // Step 1: Get text response from OpenAI (BEFORE saving to avoid duplication)
-      console.log("Calling OpenAI with user text:", userText);
-      const botText = (await GptResponse(userText))?.trim();
-      console.log("OpenAI response:", botText);
-      if (!botText) throw new Error("Empty response from OpenAI");
-
-      // Step 2: Save the whole turn AFTER getting response
-      saveChatTurn(userText, botText);
-      if (isStale()) return;
-
-      // Step 3: Convert bot response to speech using ElevenLabs
-      console.log("Converting to speech...");
-      let audioUrl;
-      if (botText.includes("/play song")) {
-        audioUrl = Song;
-      } else {
-        audioUrl = await textToSpeechUrl(botText, voiceIdRef.current);
-      }
-      if (isStale()) return;
-
-      console.log("Audio generated:", audioUrl);
-
-      // Step 4: Transition to speaking state and hand audio to parent
-      updateBotState("speaking");
-      onAudioGeneratedRef.current?.(audioUrl);
-    } catch (error) {
-      console.error("Error generating bot response:", error);
-      // Go back to listening so user can try again
-      if (!isStale()) updateBotState("listening");
-    }
-  };
 
   const handleStart = async () => {
     // Prevent multiple simultaneous connection attempts

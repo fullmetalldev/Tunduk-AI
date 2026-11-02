@@ -36,12 +36,45 @@ RESPONSE LENGTH:
 * Prefer short, clear, conversational answers.
 `;
 
-export const GptResponse = async (userText) => {
+/**
+ * Streams the reply token by token so speech can start before GPT finishes.
+ * @param {string} userText - What the user said
+ * @param {(delta: string) => void} onDelta - Called with each new piece of text
+ * @param {() => boolean} isCancelled - Stop reading when this returns true
+ * @returns {Promise<string>} The full reply
+ */
+export const GptResponseStream = async (userText, onDelta, isCancelled) => {
+  const stream = await openai.chat.completions.create({
+    model: "gpt-5-mini",
+    messages: buildMessages(userText),
+    // Short spoken replies don't need deep reasoning; this cuts response
+    // time from several seconds to about one.
+    reasoning_effort: "minimal",
+    verbosity: "low",
+    stream: true,
+  });
+
+  let reply = "";
+  for await (const chunk of stream) {
+    if (isCancelled?.()) {
+      stream.controller.abort();
+      break;
+    }
+    const delta = chunk.choices[0]?.delta?.content;
+    if (delta) {
+      reply += delta;
+      onDelta(delta);
+    }
+  }
+  return reply;
+};
+
+const buildMessages = (userText) => {
   // Get chat history for context
   const chatHistory = formatHistoryForOpenAI();
 
   // Build messages array with history + current message
-  const messages = [
+  return [
     {
       role: "system",
       content: prompt,
@@ -54,15 +87,4 @@ export const GptResponse = async (userText) => {
       content: userText,
     },
   ];
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
-    messages,
-    // Short spoken replies don't need deep reasoning; this cuts response
-    // time from several seconds to about one.
-    reasoning_effort: "minimal",
-    verbosity: "low",
-  });
-  console.log("GPT RESPONSE", response);
-  return response.choices[0].message.content;
 };

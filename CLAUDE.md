@@ -17,13 +17,15 @@ Stack: React 19 + Vite 8 (React Compiler enabled), plain JSX, SCSS per component
 
 ```
 mic ──► ElevenLabs Scribe realtime STT (useScribe, VAD commit, languageCode "ky")
-          │ onCommittedTranscript
+          │ onCommittedTranscript            (or a message typed in the chat panel)
           ▼
-     OpenAI chat completion (gpt-5-mini, reasoning_effort "minimal", system prompt + history)
-          │ reply text  ("/play song" → plays bundled song instead of TTS)
+     OpenAI chat completion, streamed (gpt-5-mini, reasoning_effort "minimal", + history)
+          │ first sentence → TTS immediately, the rest → TTS when GPT finishes
+          │ ("/play song" → plays bundled song instead of TTS)
           ▼
      ElevenLabs TTS stream (eleven_v4, falls back to eleven_v3, selected voice)
-          → MediaSource URL (plays from the first chunk; blob URL fallback) → <audio> in ChatBot
+          → speech queue: all pieces appended in order to ONE MediaSource
+            (plays from the first chunk; blob URL fallback) → <audio> in ChatBot
           │ "ended"
           ▼
      back to "listening"
@@ -37,15 +39,21 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
 ## Key files
 
 - `src/sections/ChatBot/ChatBot.jsx` — call UI, state machine owner, response `<audio>`,
-  voice picker.
-- `src/hooks/SpeechToText.jsx` — renderless component wrapping `useScribe`; on commit it
-  calls OpenAI, saves history, generates TTS and hands the audio URL to `ChatBot`.
-- `src/api/OpenAI.js` — system prompt + `GptResponse(userText)`.
-- `src/api/ElevenLabs.js` — TTS (`textToSpeechUrl(text, voiceId)`), Scribe token, `VOICES` list.
+  voice picker; routes spoken/typed messages to `useBotReply`.
+- `src/hooks/SpeechToText.jsx` — renderless component wrapping `useScribe`; only reports
+  `onPartial` (live caption) and `onUtterance` (finished phrase) to `ChatBot`.
+- `src/hooks/useBotReply.js` — one bot turn: streams GPT, splits off the first sentence for
+  TTS, saves the turn, exposes the in-progress `reply` for captions; `cancel()` on hang up.
+- `src/components/ChatMessages/` — captions + text chat panel (history via
+  `useSyncExternalStore`, live turn, typing input). Typed messages are answered out loud
+  during a call and as text only when no call is active.
+- `src/api/OpenAI.js` — system prompt + `GptResponseStream(userText, onDelta, isCancelled)`.
+- `src/api/ElevenLabs.js` — `createSpeechQueue(voiceId)` (push/end/cancel/getUrl), Scribe
+  token, `VOICES` list.
 - Speech-to-text is Scribe v2 Realtime (no newer STT model exists as of Nov 2026); Kyrgyz is a
   "Good" tier language (10–20% WER), so recognition is biased with `KEYTERMS` in `SpeechToText.jsx`.
 - `src/lib/chatHistory.js` — conversation memory in `localStorage` (`chatHistory` key),
-  trimmed to the last N user/assistant turns.
+  trimmed to the last N user/assistant turns; `subscribeChatHistory` notifies the UI.
 - `src/i18n/` — UI translations (`translations.js`: `en`, `ky`), `I18nProvider` (`I18n.jsx`)
   and the `useI18n()` hook (`useI18n.js`, kept separate for fast refresh). Language is chosen
   in the header and persisted in `localStorage`. Add new UI strings to both languages.

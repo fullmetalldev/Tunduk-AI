@@ -38,71 +38,121 @@ const canStreamMp3 = () =>
   typeof window !== "undefined" &&
   window.MediaSource?.isTypeSupported?.(MP3_MIME);
 
-// Feeds the TTS stream into a MediaSource so the <audio> element starts
-// playing on the first chunk instead of waiting for the whole file.
-const streamToMediaSourceUrl = (stream) => {
-  const mediaSource = new MediaSource();
-  const audioUrl = URL.createObjectURL(mediaSource);
-
-  mediaSource.addEventListener(
-    "sourceopen",
-    async () => {
-      const sourceBuffer = mediaSource.addSourceBuffer(MP3_MIME);
-      const reader = stream.getReader();
-      const appendChunk = (chunk) =>
-        new Promise((resolve, reject) => {
-          sourceBuffer.addEventListener("updateend", resolve, { once: true });
-          sourceBuffer.addEventListener("error", reject, { once: true });
-          sourceBuffer.appendBuffer(chunk);
-        });
-
-      try {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          // The audio element was reset (user hung up) - stop downloading
-          if (mediaSource.readyState !== "open") {
-            reader.cancel();
-            return;
-          }
-          await appendChunk(value);
-        }
-        if (mediaSource.readyState === "open") mediaSource.endOfStream();
-      } catch (error) {
-        console.error("Error streaming audio:", error);
-        if (mediaSource.readyState === "open") mediaSource.endOfStream("network");
-      }
-    },
-    { once: true },
-  );
-
-  return audioUrl;
-};
-
-const streamToBlobUrl = async (stream) => {
-  const reader = stream.getReader();
-  const chunks = [];
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-  const blob = new Blob(chunks, { type: MP3_MIME });
-  return URL.createObjectURL(blob);
-};
-
 /**
- * Generates speech for the text and returns a URL the <audio> element can
- * play right away. Streams where the browser supports it, otherwise waits
- * for the full file.
+ * A reply spoken in pieces: push() text as it arrives from GPT and every
+ * piece is requested from ElevenLabs right away, but played back in order
+ * through ONE audio URL. Where the browser supports it the URL is ready
+ * immediately and plays from the first chunk; otherwise it resolves with the
+ * whole reply once everything is downloaded.
+ *
+ * @param {string} voiceId
+ * @returns {{ push: (text: string) => void, end: () => void,
+ *   cancel: () => void, getUrl: () => Promise<string> }}
  */
-export const textToSpeechUrl = async (text, voiceId = DEFAULT_VOICE_ID) => {
-  const stream = await generateElevenTextToSpeech(text, voiceId);
-  const audioUrl = canStreamMp3()
-    ? streamToMediaSourceUrl(stream)
-    : await streamToBlobUrl(stream);
-  console.log('AUDIO READY', audioUrl)
-  return audioUrl;
+export const createSpeechQueue = (voiceId = DEFAULT_VOICE_ID) => {
+  const requests = [];
+  let ended = false;
+  let cancelled = false;
+  let wake = null;
+
+  const notify = () => {
+    wake?.();
+    wake = null;
+  };
+
+  // Audio chunks of every piece, in order, as soon as each one arrives
+  async function* audioChunks() {
+    let index = 0;
+    while (!cancelled) {
+      if (index < requests.length) {
+        try {
+          const reader = (await requests[index]).getReader();
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (cancelled) {
+              reader.cancel();
+              return;
+            }
+            yield value;
+          }
+        } catch (error) {
+          // Skip a failed piece rather than dropping the whole reply
+          console.error("Error generating speech:", error);
+        }
+        index += 1;
+      } else if (ended) {
+        return;
+      } else {
+        await new Promise((resolve) => (wake = resolve));
+      }
+    }
+  }
+
+  const streamToMediaSource = () => {
+    const mediaSource = new MediaSource();
+    mediaSource.addEventListener(
+      "sourceopen",
+      async () => {
+        const sourceBuffer = mediaSource.addSourceBuffer(MP3_MIME);
+        // Play appended pieces back to back instead of by their timestamps
+        sourceBuffer.mode = "sequence";
+        const append = (chunk) =>
+          new Promise((resolve, reject) => {
+            sourceBuffer.addEventListener("updateend", resolve, { once: true });
+            sourceBuffer.addEventListener("error", reject, { once: true });
+            sourceBuffer.appendBuffer(chunk);
+          });
+
+        try {
+          for await (const chunk of audioChunks()) {
+            // The audio element was reset (user hung up) - stop downloading
+            if (mediaSource.readyState !== "open") {
+              cancelled = true;
+              return;
+            }
+            await append(chunk);
+          }
+          if (mediaSource.readyState === "open") mediaSource.endOfStream();
+        } catch (error) {
+          console.error("Error streaming audio:", error);
+          if (mediaSource.readyState === "open") mediaSource.endOfStream("network");
+        }
+      },
+      { once: true },
+    );
+    return Promise.resolve(URL.createObjectURL(mediaSource));
+  };
+
+  const streamToBlob = async () => {
+    const chunks = [];
+    for await (const chunk of audioChunks()) chunks.push(chunk);
+    return URL.createObjectURL(new Blob(chunks, { type: MP3_MIME }));
+  };
+
+  let urlPromise = null;
+
+  return {
+    push: (text) => {
+      if (ended || cancelled || !text.trim()) return;
+      const request = generateElevenTextToSpeech(text, voiceId);
+      request.catch(() => {}); // handled when the piece is read
+      requests.push(request);
+      notify();
+    },
+    end: () => {
+      ended = true;
+      notify();
+    },
+    cancel: () => {
+      cancelled = true;
+      notify();
+    },
+    getUrl: () => {
+      urlPromise ??= canStreamMp3() ? streamToMediaSource() : streamToBlob();
+      return urlPromise;
+    },
+  };
 };
 
 export const getElevenAuth = async () => {
