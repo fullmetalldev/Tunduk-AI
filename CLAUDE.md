@@ -17,7 +17,7 @@ Stack: React 19 + Vite 8 (React Compiler enabled), plain JSX, SCSS per component
 
 ```
 mic ──► ElevenLabs Scribe realtime STT (useScribe, VAD commit, languageCode "ky")
-          │ onCommittedTranscript            (or a message typed in the chat panel)
+          │ onCommittedTranscript
           ▼
      OpenAI chat completion, streamed (gpt-5-mini, reasoning_effort "minimal", + history)
           │ first sentence → TTS immediately, the rest → TTS when GPT finishes
@@ -39,14 +39,14 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
 ## Key files
 
 - `src/sections/ChatBot/ChatBot.jsx` — call UI, state machine owner, response `<audio>`,
-  voice picker; routes spoken/typed messages to `useBotReply`.
+  voice picker; routes finished phrases to `useBotReply`.
 - `src/hooks/SpeechToText.jsx` — renderless component wrapping `useScribe`; only reports
   `onPartial` (live caption) and `onUtterance` (finished phrase) to `ChatBot`.
 - `src/hooks/useBotReply.js` — one bot turn: streams GPT, splits off the first sentence for
   TTS, saves the turn, exposes the in-progress `reply` for captions; `cancel()` on hang up.
-- `src/components/ChatMessages/` — captions + text chat panel (history via
-  `useSyncExternalStore`, live turn, typing input). Typed messages are answered out loud
-  during a call and as text only when no call is active.
+- `src/components/ChatMessages/` — read-only captions panel: history via
+  `useSyncExternalStore`, the live turn and the user's partial transcript. No text input
+  by design - the bot is voice only.
 - `src/api/OpenAI.js` — system prompt + `GptResponseStream(userText, onDelta, isCancelled)`.
 - `src/api/ElevenLabs.js` — `createSpeechQueue(voiceId)` (push/end/cancel/getUrl), Scribe
   token, `VOICES` list.

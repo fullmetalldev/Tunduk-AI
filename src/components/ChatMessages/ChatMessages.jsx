@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { SendHorizontal, Trash2 } from "lucide-react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { Trash2 } from "lucide-react";
 import {
   clearChatHistory,
   getChatHistorySnapshot,
@@ -43,21 +43,18 @@ const Message = ({ role, text, time, live }) => {
 };
 
 /**
- * Captions and text chat: saved history, the turn in progress, and what the
- * user is saying right now.
+ * Captions of the conversation: saved history, the turn in progress, and
+ * what the user is saying right now.
  * @param {object} props
  * @param {{ user: string, bot: string } | null} props.reply - Turn in progress
  * @param {string} props.partial - What the user is saying right now
- * @param {(text: string) => void} props.onSend - User typed a message
- * @param {boolean} props.canSend - Whether the bot accepts a message now
  */
-export const ChatMessages = ({ reply, partial, onSend, canSend }) => {
+export const ChatMessages = ({ reply, partial }) => {
   const { t } = useI18n();
   const messages = useSyncExternalStore(
     subscribeChatHistory,
     getChatHistorySnapshot,
   );
-  const [draft, setDraft] = useState("");
   const listRef = useRef(null);
 
   // Keep the newest caption in view
@@ -65,14 +62,6 @@ export const ChatMessages = ({ reply, partial, onSend, canSend }) => {
     const list = listRef.current;
     if (list) list.scrollTop = list.scrollHeight;
   }, [messages, reply, partial]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const text = draft.trim();
-    if (!text || !canSend) return;
-    onSend(text);
-    setDraft("");
-  };
 
   const isEmpty = messages.length === 0 && !reply && !partial;
 
@@ -117,24 +106,6 @@ export const ChatMessages = ({ reply, partial, onSend, canSend }) => {
           </div>
         )}
       </div>
-
-      <form className="ChatMessages__form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={t("chat.placeholder")}
-          aria-label={t("chat.placeholder")}
-        />
-        <button
-          type="submit"
-          disabled={!canSend || !draft.trim()}
-          title={t("chat.send")}
-          aria-label={t("chat.send")}
-        >
-          <SendHorizontal size={18} />
-        </button>
-      </form>
     </div>
   );
 };
