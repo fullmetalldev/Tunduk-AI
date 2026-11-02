@@ -12,8 +12,14 @@ import { useBotReply } from "../../hooks/useBotReply.js";
 import ChatMessages from "../../components/ChatMessages/ChatMessages.jsx";
 import { DEFAULT_VOICE_ID, VOICES } from "../../api/ElevenLabs.js";
 import { useI18n } from "../../i18n/useI18n";
+import { unlockAudioElement } from "../../components/Visualizer/Audiograph.js";
+import { isChatHistoryFull, migrateLegacyHistory } from "../../lib/chatHistory.js";
 
 const VOICE_STORAGE_KEY = "voiceId";
+
+// History from before every voice had its own conversation belongs to the
+// default voice
+migrateLegacyHistory(DEFAULT_VOICE_ID);
 
 const getInitialVoice = () => {
   try {
@@ -86,11 +92,13 @@ const ChatBot = () => {
     cancelReply();
     setPartial("");
     if (botState === "idle") {
-      joinCallRef.current.play();
+      joinCallRef.current.play().catch(() => {});
+      // Must happen inside this click, or iOS won't play the bot's replies
+      unlockAudioElement(currentAudioRef.current);
       setBotState("connecting");
     } else {
       stopBotAudio();
-      dropCallRef.current.play();
+      dropCallRef.current.play().catch(() => {});
       setBotState("idle");
     }
   };
@@ -103,6 +111,12 @@ const ChatBot = () => {
   // The user finished a phrase during a call: answer out loud
   const handleUtterance = async (text) => {
     setPartial("");
+    // Full conversation: the panel asks the user to clear it, until then
+    // nothing new is sent
+    if (isChatHistoryFull(voiceId)) {
+      setBotState((state) => (state === "thinking" ? "listening" : state));
+      return;
+    }
     setBotState("thinking");
     let spoke = false;
     try {
@@ -212,7 +226,12 @@ const ChatBot = () => {
                 </div>
               </div>
 
-              <ChatMessages reply={reply} partial={partial} />
+              <ChatMessages
+                contextId={voiceId}
+                contextName={VOICES.find((voice) => voice.id === voiceId)?.name}
+                reply={reply}
+                partial={partial}
+              />
             </div>
           </div>
         </div>

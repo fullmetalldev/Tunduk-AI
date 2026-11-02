@@ -42,17 +42,18 @@ export function useBotReply() {
 
   /**
    * @param {string} userText
-   * @param {object} [options]
-   * @param {string} [options.voiceId] - Speak the reply with this voice; omit for text only
+   * @param {object} options
+   * @param {string} options.voiceId - Voice to speak with; also picks the
+   *   conversation history, since every voice has its own context
    * @param {(audioUrl: string) => void} [options.onSpeech] - Audio is ready to play
    * @returns {Promise<boolean>} Whether audio was handed to onSpeech
    */
-  const respond = async (userText, { voiceId, onSpeech } = {}) => {
+  const respond = async (userText, { voiceId, onSpeech }) => {
     cancel();
     const replyId = replyIdRef.current;
     const isCancelled = () => replyId !== replyIdRef.current;
 
-    const speech = voiceId ? createSpeechQueue(voiceId) : null;
+    const speech = createSpeechQueue(voiceId);
     speechRef.current = speech;
     let botText = "";
     let spokenUpTo = 0;
@@ -73,12 +74,13 @@ export function useBotReply() {
     try {
       console.log("Calling OpenAI with user text:", userText);
       await GptResponseStream(
+        voiceId,
         userText,
         (delta) => {
           botText += delta;
           setReply({ user: userText, bot: botText });
 
-          if (!speech || spokenUpTo > 0 || mightBeSongCommand(botText)) return;
+          if (spokenUpTo > 0 || mightBeSongCommand(botText)) return;
           const sentenceEnd = findFirstSentenceEnd(botText);
           if (sentenceEnd !== -1) {
             spokenUpTo = sentenceEnd;
@@ -93,9 +95,8 @@ export function useBotReply() {
       if (!botText.trim()) throw new Error("Empty response from OpenAI");
 
       // Save the whole turn AFTER getting the response
-      saveChatTurn(userText, botText.trim());
+      saveChatTurn(voiceId, userText, botText.trim());
       setReply(null);
-      if (!speech) return false;
 
       if (botText.includes(PLAY_SONG)) {
         speech.cancel();
@@ -107,7 +108,7 @@ export function useBotReply() {
       return speaking;
     } catch (error) {
       if (!isCancelled()) {
-        speech?.cancel();
+        speech.cancel();
         setReply(null);
       }
       throw error;

@@ -2,31 +2,50 @@ import { useId } from "react";
 
 // Inline SVG flags - emoji flags don't render on Windows.
 
-export const FlagGB = ({ className }) => {
-  const id = useId();
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 60 30"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden="true"
-    >
-      <clipPath id={`${id}-diagonals`}>
-        <path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z" />
-      </clipPath>
-      <path d="M0,0 v30 h60 v-30 z" fill="#012169" />
-      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" />
-      <path
-        d="M0,0 L60,30 M60,0 L0,30"
-        clipPath={`url(#${id}-diagonals)`}
-        stroke="#C8102E"
-        strokeWidth="4"
+// 13 stripes, and 50 stars in 9 alternating rows of 6 and 5
+const US_STRIPE = 100 / 13;
+const US_CANTON = { width: 76, height: US_STRIPE * 7 };
+const US_STARS = Array.from({ length: 9 }, (_, row) =>
+  Array.from({ length: row % 2 ? 5 : 6 }, (_, col) => ({
+    x: (US_CANTON.width / 12) * (col * 2 + (row % 2 ? 2 : 1)),
+    y: (US_CANTON.height / 10) * (row + 1),
+  })),
+).flat();
+// Five-pointed star centred on 0,0
+const STAR_PATH = Array.from({ length: 10 }, (_, i) => {
+  const r = i % 2 ? 1.25 : 3.1;
+  const a = (i * Math.PI) / 5 - Math.PI / 2;
+  return `${(r * Math.cos(a)).toFixed(2)},${(r * Math.sin(a)).toFixed(2)}`;
+}).join(" ");
+
+export const FlagUS = ({ className }) => (
+  <svg
+    className={className}
+    viewBox="0 0 190 100"
+    preserveAspectRatio="xMidYMid slice"
+    aria-hidden="true"
+  >
+    <rect width="190" height="100" fill="#fff" />
+    {Array.from({ length: 7 }, (_, i) => (
+      <rect
+        key={i}
+        y={i * 2 * US_STRIPE}
+        width="190"
+        height={US_STRIPE}
+        fill="#B22234"
       />
-      <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10" />
-      <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6" />
-    </svg>
-  );
-};
+    ))}
+    <rect width={US_CANTON.width} height={US_CANTON.height} fill="#3C3B6E" />
+    {US_STARS.map(({ x, y }) => (
+      <polygon
+        key={`${x}-${y}`}
+        points={STAR_PATH}
+        transform={`translate(${x.toFixed(2)} ${y.toFixed(2)})`}
+        fill="#fff"
+      />
+    ))}
+  </svg>
+);
 
 // Sun with 40 rays and the tunduk (yurt crown) in the middle
 const KG_RAYS = Array.from({ length: 40 }, (_, i) => {

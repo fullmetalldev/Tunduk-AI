@@ -1,10 +1,10 @@
 import Logo from "../../components/Logo/Logo";
 import { useI18n } from "../../i18n/useI18n";
 import { LANGUAGES } from "../../i18n/translations";
-import { FlagGB, FlagKG } from "../../components/Flags/Flags";
+import { FlagKG, FlagUS } from "../../components/Flags/Flags";
 import "./Header.scss";
 
-const FLAGS = { en: FlagGB, ky: FlagKG };
+const FLAGS = { en: FlagUS, ky: FlagKG };
 
 const Header = () => {
   const { t, language, setLanguage } = useI18n();

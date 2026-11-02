@@ -47,13 +47,17 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
 - `src/components/ChatMessages/` — read-only captions panel: history via
   `useSyncExternalStore`, the live turn and the user's partial transcript. No text input
   by design - the bot is voice only.
-- `src/api/OpenAI.js` — system prompt + `GptResponseStream(userText, onDelta, isCancelled)`.
+- `src/api/OpenAI.js` — `GptResponseStream(contextId, userText, onDelta, isCancelled)`.
+- `src/api/prompts.js` — one character prompt per voice (Jarvisbek: J.A.R.V.I.S.-style AI
+  butler; Mirbek Baike: tipsy comedic philosopher) + shared rules; `getSystemPrompt(voiceId)`.
 - `src/api/ElevenLabs.js` — `createSpeechQueue(voiceId)` (push/end/cancel/getUrl), Scribe
   token, `VOICES` list.
 - Speech-to-text is Scribe v2 Realtime (no newer STT model exists as of Nov 2026); Kyrgyz is a
   "Good" tier language (10–20% WER), so recognition is biased with `KEYTERMS` in `SpeechToText.jsx`.
-- `src/lib/chatHistory.js` — conversation memory in `localStorage` (`chatHistory` key),
-  trimmed to the last N user/assistant turns; `subscribeChatHistory` notifies the UI.
+- `src/lib/chatHistory.js` — conversation memory in `localStorage`, one context per voice
+  (`chatHistory:<voiceId>`; every function takes the `contextId` = voice id). Capped at
+  `MAX_MESSAGES` (50): when full, new phrases are ignored and the panel asks the user to
+  clear it. `subscribeChatHistory` notifies the UI.
 - `src/i18n/` — UI translations (`translations.js`: `en`, `ky`), `I18nProvider` (`I18n.jsx`)
   and the `useI18n()` hook (`useI18n.js`, kept separate for fast refresh). Language is chosen
   in the header and persisted in `localStorage`. Add new UI strings to both languages.
@@ -68,3 +72,8 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
   active before playing audio or changing state.
 - `StrictMode` double-runs effects in dev; `isConnectingRef` guards the Scribe connect.
 - The bot itself always answers in Kyrgyz regardless of the UI language.
+- iOS: audio routed through Web Audio is silent unless its AudioContext is resumed from a
+  tap (and the mic can suspend it again), and `play()` after awaits is blocked unless the
+  element was played from a tap first. So on iOS the bot's `<audio>` is not routed through
+  Web Audio (no orb volume there), and "Talk to bot" calls `unlockAudioElement()` inside
+  the click. iPhone has no `MediaSource`, so speech uses the blob fallback (whole reply).

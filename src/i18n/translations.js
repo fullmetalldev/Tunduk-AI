@@ -27,6 +27,8 @@ export const translations = {
     "chat.you": "You",
     "chat.title": "Conversation",
     "chat.clear": "Clear conversation",
+    "chat.full": "This conversation has reached {max} messages. Clear it to start a new one.",
+    "chat.fullAction": "Clear and start again",
   },
   ky: {
     "nav.about": "Биз жөнүндө",
@@ -48,5 +50,7 @@ export const translations = {
     "chat.you": "Сиз",
     "chat.title": "Сүйлөшүү",
     "chat.clear": "Сүйлөшүүнү тазалоо",
+    "chat.full": "Бул сүйлөшүү {max} билдирүүгө жетти. Жаңысын баштоо үчүн аны тазалаңыз.",
+    "chat.fullAction": "Тазалап, кайра баштоо",
   },
 };

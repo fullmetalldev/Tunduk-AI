@@ -5,9 +5,13 @@ const elevenlabs = new ElevenLabsClient({
 });
 
 // Voices the user can pick for the bot - browse voices at elevenlabs.io/app/voice-library
+// Each voice is a separate character (see prompts.js) with its own history.
+export const JARVISBEK_VOICE_ID = "xSvb8bez3GCZPLs42u97";
+export const MIRBEK_VOICE_ID = "luy1CrV6Ok1pWRBWzIhJ";
+
 export const VOICES = [
-  { id: "xSvb8bez3GCZPLs42u97", name: "Jarvisbek" },
-  { id: "luy1CrV6Ok1pWRBWzIhJ", name: "Mirbek Baike" },
+  { id: JARVISBEK_VOICE_ID, name: "Jarvisbek" },
+  { id: MIRBEK_VOICE_ID, name: "Mirbek Baike" },
 ];
 
 export const DEFAULT_VOICE_ID = VOICES[0].id;

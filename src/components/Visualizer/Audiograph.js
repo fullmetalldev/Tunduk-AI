@@ -47,3 +47,53 @@ export function createAnalyser(el, { fftSize = 256 } = {}) {
   source.connect(analyser);
   return analyser;
 }
+
+// iOS Safari only lets a page play audio it started from a tap, and audio
+// routed through Web Audio is silent unless its AudioContext was resumed from
+// a tap too - and the microphone a call opens can suspend it again. So on
+// iOS the bot's voice is NOT routed through Web Audio at all (the orb just
+// won't react to volume there).
+export const isIOS =
+  typeof navigator !== "undefined" &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
+let silentAudioUrl = null;
+
+// A few milliseconds of silence as a WAV file
+const getSilentAudioUrl = () => {
+  if (silentAudioUrl) return silentAudioUrl;
+  const samples = 800;
+  const sampleRate = 8000;
+  const view = new DataView(new ArrayBuffer(44 + samples));
+  const writeText = (offset, text) =>
+    [...text].forEach((char, i) => view.setUint8(offset + i, char.charCodeAt(0)));
+  writeText(0, "RIFF");
+  view.setUint32(4, 36 + samples, true);
+  writeText(8, "WAVEfmt ");
+  view.setUint32(16, 16, true); // fmt chunk size
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate, true); // byte rate
+  view.setUint16(32, 1, true); // block align
+  view.setUint16(34, 8, true); // bits per sample
+  writeText(36, "data");
+  view.setUint32(40, samples, true);
+  for (let i = 0; i < samples; i++) view.setUint8(44 + i, 128); // silence
+  silentAudioUrl = URL.createObjectURL(new Blob([view], { type: "audio/wav" }));
+  return silentAudioUrl;
+};
+
+/**
+ * Call from a click/tap handler. Plays silence on the element and resumes
+ * its audio graph, so later play() calls made after awaits (when the bot's
+ * reply is ready) are allowed by mobile browsers.
+ */
+export function unlockAudioElement(el) {
+  if (!el) return;
+  const graph = registry.get(el);
+  if (graph?.audioContext.state !== "running") graph?.audioContext.resume();
+  el.src = getSilentAudioUrl();
+  el.play().catch(() => {});
+}

@@ -1,14 +1,15 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { Trash2 } from "lucide-react";
 import {
   clearChatHistory,
   getChatHistorySnapshot,
+  MAX_MESSAGES,
   subscribeChatHistory,
 } from "../../lib/chatHistory";
 import { useI18n } from "../../i18n/useI18n";
 import "./ChatMessages.scss";
 
-const Message = ({ role, text, time, live }) => {
+const Message = ({ role, text, time, live, botName }) => {
   const { t } = useI18n();
   const isUser = role === "user";
 
@@ -18,7 +19,7 @@ const Message = ({ role, text, time, live }) => {
     >
       <div className="ChatMessages__message-content">
         <div className="ChatMessages__message-role">
-          {isUser ? t("chat.you") : "Jarvisbek"}
+          {isUser ? t("chat.you") : botName}
         </div>
         {text ? (
           <p className="ChatMessages__message-text">{text}</p>
@@ -46,15 +47,21 @@ const Message = ({ role, text, time, live }) => {
  * Captions of the conversation: saved history, the turn in progress, and
  * what the user is saying right now.
  * @param {object} props
+ * @param {string} props.contextId - Which conversation to show (one per voice)
+ * @param {string} [props.contextName] - Shown in the header
  * @param {{ user: string, bot: string } | null} props.reply - Turn in progress
  * @param {string} props.partial - What the user is saying right now
  */
-export const ChatMessages = ({ reply, partial }) => {
+export const ChatMessages = ({ contextId, contextName, reply, partial }) => {
   const { t } = useI18n();
-  const messages = useSyncExternalStore(
-    subscribeChatHistory,
-    getChatHistorySnapshot,
+  const getSnapshot = useCallback(
+    () => getChatHistorySnapshot(contextId),
+    [contextId],
   );
+  const messages = useSyncExternalStore(subscribeChatHistory, getSnapshot);
+  const isFull = messages.length >= MAX_MESSAGES;
+  const botName = contextName ?? "Jarvisbek";
+  const clear = () => clearChatHistory(contextId);
   const listRef = useRef(null);
 
   // Keep the newest caption in view
@@ -68,11 +75,21 @@ export const ChatMessages = ({ reply, partial }) => {
   return (
     <div className="ChatMessages">
       <div className="ChatMessages__header">
-        <span>{t("chat.title")}</span>
+        <span>
+          {t("chat.title")}
+          {contextName && (
+            <span className="ChatMessages__context"> · {contextName}</span>
+          )}
+        </span>
+        <span
+          className={`ChatMessages__count${isFull ? " ChatMessages__count--full" : ""}`}
+        >
+          {messages.length}/{MAX_MESSAGES}
+        </span>
         <button
           type="button"
           className="ChatMessages__clear"
-          onClick={clearChatHistory}
+          onClick={clear}
           disabled={messages.length === 0}
           title={t("chat.clear")}
           aria-label={t("chat.clear")}
@@ -94,15 +111,24 @@ export const ChatMessages = ({ reply, partial }) => {
                 role={msg.role}
                 text={msg.content}
                 time={msg.timestamp}
+                botName={botName}
               />
             ))}
             {reply && (
               <>
                 <Message role="user" text={reply.user} />
-                <Message role="assistant" text={reply.bot} live />
+                <Message role="assistant" text={reply.bot} live botName={botName} />
               </>
             )}
             {!reply && partial && <Message role="user" text={partial} live />}
+            {isFull && (
+              <div className="ChatMessages__full" role="alert">
+                <p>{t("chat.full").replace("{max}", MAX_MESSAGES)}</p>
+                <button type="button" onClick={clear}>
+                  {t("chat.fullAction")}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
