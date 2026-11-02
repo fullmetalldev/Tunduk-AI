@@ -77,3 +77,16 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
   element was played from a tap first. So on iOS the bot's `<audio>` is not routed through
   Web Audio (the orb follows a loudness curve decoded separately from the same file), and "Talk to bot" calls `unlockAudioElement()` inside
   the click. iPhone has no `MediaSource`, so speech uses the blob fallback (whole reply).
+
+## Deploy and API keys
+
+- Site: GitHub Pages via `.github/workflows/deploy.yml` on every push to `main`, built with
+  `--base=/<repo-name>/`. It reads only the repo variable `VITE_API_PROXY_URL`.
+- Keys: `worker/` is a Cloudflare Worker that holds `OPENAI_API_KEY` and
+  `ELEVENLABS_API_KEY` as Worker secrets and forwards only the app's requests (chat
+  completions with the model forced to gpt-5-mini, TTS for the listed voices/models, the
+  Scribe single-use token), only for origins in `ALLOWED_ORIGINS`. Deploy it with
+  `cd worker && npx wrangler deploy`. When adding a voice, add it to `VOICE_IDS` there too.
+- `src/api/proxy.js`: the SDKs go through `VITE_API_PROXY_URL`. Only `npm run dev` without
+  it uses `VITE_*_API_KEY` from `.env` directly; the `import.meta.env.DEV && ...` condition
+  is written inline in `OpenAI.js`/`ElevenLabs.js` so production builds drop the keys.

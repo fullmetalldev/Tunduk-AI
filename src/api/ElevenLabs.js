@@ -1,8 +1,14 @@
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import { API_PROXY_URL } from "./proxy";
 
-const elevenlabs = new ElevenLabsClient({
-  apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY,
-});
+// Through the key proxy (worker/) - see proxy.js. The proxy adds the real
+// key, so the placeholder only keeps the SDK from asking for one. The
+// condition is written inline so production builds drop the key branch.
+const elevenlabs = new ElevenLabsClient(
+  import.meta.env.DEV && !API_PROXY_URL
+    ? { apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY }
+    : { apiKey: "proxy", baseUrl: `${API_PROXY_URL}/elevenlabs` },
+);
 
 // Voices the user can pick for the bot - browse voices at elevenlabs.io/app/voice-library
 // Each voice is a separate character (see prompts.js) with its own history.
