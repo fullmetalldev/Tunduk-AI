@@ -1,7 +1,7 @@
 // UI translations. The bot itself always speaks Kyrgyz regardless of this.
 export const LANGUAGES = [
-  { code: "en", label: "EN" },
-  { code: "ky", label: "KY" },
+  { code: "en", label: "English" },
+  { code: "ky", label: "Кыргызча" },
 ];
 
 export const DEFAULT_LANGUAGE = "en";

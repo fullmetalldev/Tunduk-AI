@@ -24,18 +24,29 @@
       border-radius: var(--border-30);
       border: 1px solid var(--color-white-40);
       button {
+        display: flex;
         cursor: pointer;
         border: none;
         background: transparent;
-        color: var(--color-white-80);
-        padding: 4px 10px;
+        padding: 4px 6px;
         border-radius: var(--border-30);
-        font-weight: 500;
+        opacity: 0.5;
+        transition: 0.2s;
+        &:hover {
+          opacity: 0.85;
+        }
         &.active {
-          background: var(--color-white);
-          color: var(--color-black);
+          background: var(--color-white-20);
+          opacity: 1;
         }
       }
     }
   }
+}
+
+.Header__flag {
+  display: block;
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
 }

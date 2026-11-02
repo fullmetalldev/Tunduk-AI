@@ -1,7 +1,10 @@
 import Logo from "../../components/Logo/Logo";
 import { useI18n } from "../../i18n/useI18n";
 import { LANGUAGES } from "../../i18n/translations";
+import { FlagGB, FlagKG } from "../../components/Flags/Flags";
 import "./Header.scss";
+
+const FLAGS = { en: FlagGB, ky: FlagKG };
 
 const Header = () => {
   const { t, language, setLanguage } = useI18n();
@@ -19,17 +22,22 @@ const Header = () => {
               <a href="">{t("nav.chatbot")}</a>
             </li>
             <li className="Header__navbar_lang">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  type="button"
-                  className={language === lang.code ? "active" : ""}
-                  aria-pressed={language === lang.code}
-                  onClick={() => setLanguage(lang.code)}
-                >
-                  {lang.label}
-                </button>
-              ))}
+              {LANGUAGES.map((lang) => {
+                const Flag = FLAGS[lang.code];
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    className={language === lang.code ? "active" : ""}
+                    aria-pressed={language === lang.code}
+                    aria-label={lang.label}
+                    title={lang.label}
+                    onClick={() => setLanguage(lang.code)}
+                  >
+                    <Flag className="Header__flag" />
+                  </button>
+                );
+              })}
             </li>
           </div>
         </ul>
