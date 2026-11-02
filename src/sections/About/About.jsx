@@ -17,11 +17,15 @@ const About = () => {
             {t("about.title")}
           </h2>
           <span className="About__content_subtitle sub-1">
-            {t("about.subtitle1")}
-            <br />
-            {t("about.subtitle2")}
-            <br />
-            {t("about.subtitle3")}
+            {["about.subtitle1", "about.subtitle2", "about.subtitle3"]
+              .map((key) => t(key))
+              .filter(Boolean)
+              .map((line, index) => (
+                <span key={index}>
+                  {index > 0 && <br />}
+                  {line}
+                </span>
+              ))}
           </span>
           <Button>{t("about.cta")}</Button>
         </div>
