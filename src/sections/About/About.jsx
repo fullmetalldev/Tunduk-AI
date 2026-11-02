@@ -3,10 +3,14 @@ import Logo from "../../components/Logo/Logo";
 import { useI18n } from "../../i18n/useI18n";
 import "./About.scss";
 
+const scrollToChat = () => {
+  document.getElementById("chatbot")?.scrollIntoView({ behavior: "smooth" });
+};
+
 const About = () => {
   const { t } = useI18n();
   return (
-    <section className="About">
+    <section className="About" id="about">
       <div className="container">
         <div className="About__content">
           <span className="tag">
@@ -27,7 +31,7 @@ const About = () => {
                 </span>
               ))}
           </span>
-          <Button>{t("about.cta")}</Button>
+          <Button onClick={scrollToChat}>{t("about.cta")}</Button>
         </div>
       </div>
     </section>

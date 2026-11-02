@@ -169,7 +169,10 @@ const ChatBot = () => {
         setVolume={setVolume}
       />
 
-      <section className={`ChatBot${inCall ? " ChatBot--fullscreen" : ""}`}>
+      <section
+        id="chatbot"
+        className={`ChatBot${inCall ? " ChatBot--fullscreen" : ""}`}
+      >
         <div className="container">
           <div className="ChatBot__chatBox">
             <div className="ChatBot__chatBox_header">

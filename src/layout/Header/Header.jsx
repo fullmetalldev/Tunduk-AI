@@ -16,10 +16,10 @@ const Header = () => {
           <Logo />
           <div className="Header__navbar_right">
             <li>
-              <a href="">{t("nav.about")}</a>
+              <a href="#about">{t("nav.about")}</a>
             </li>
             <li>
-              <a href="">{t("nav.chatbot")}</a>
+              <a href="#chatbot">{t("nav.chatbot")}</a>
             </li>
             <li className="Header__navbar_lang">
               {LANGUAGES.map((lang) => {

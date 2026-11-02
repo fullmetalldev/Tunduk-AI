@@ -1,3 +1,18 @@
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Keep a little space above a section when a link scrolls to it */
+section[id] {
+  scroll-margin-top: 20px;
+}
+
 .Background {
   width: 100vw;
   height: 100vh;
