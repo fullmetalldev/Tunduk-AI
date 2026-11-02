@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { getChatHistory } from "../../lib/chatHistory";
+import { useI18n } from "../../i18n/useI18n";
 import "./ChatMessages.scss";
 
 export const ChatMessages = ({ botState }) => {
+  const { t } = useI18n();
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
@@ -30,7 +32,7 @@ export const ChatMessages = ({ botState }) => {
       <div className="ChatMessages__container">
         {messages.length === 0 ? (
           <div className="ChatMessages__empty">
-            <p>Start the conversation by clicking "Talk to bot"</p>
+            <p>{t("chat.empty")}</p>
           </div>
         ) : (
           <div className="ChatMessages__list">
@@ -44,7 +46,7 @@ export const ChatMessages = ({ botState }) => {
                 </div>
                 <div className="ChatMessages__message-content">
                   <div className="ChatMessages__message-role">
-                    {msg.role === "user" ? "You" : "Jarvisbek"}
+                    {msg.role === "user" ? t("chat.you") : "Jarvisbek"}
                   </div>
                   <p className="ChatMessages__message-text">{msg.content}</p>
                   {msg.timestamp && (

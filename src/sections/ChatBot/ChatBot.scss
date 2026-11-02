@@ -6,8 +6,32 @@
     overflow: hidden;
     backdrop-filter: blur(10px);
     &_chat {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
       .Button {
         color: var(--color-white);
+      }
+    }
+    &_voice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-white-80);
+      select {
+        cursor: pointer;
+        padding: 9px 14px;
+        border-radius: var(--border-30);
+        border: 1px solid var(--color-white-40);
+        background: var(--color-white-10);
+        color: var(--color-white);
+        font-weight: 500;
+        option {
+          background: var(--color-dark-pur);
+          color: var(--color-white);
+        }
       }
     }
 

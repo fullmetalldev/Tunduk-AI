@@ -1,0 +1,48 @@
+// UI translations. The bot itself always speaks Kyrgyz regardless of this.
+export const LANGUAGES = [
+  { code: "en", label: "EN" },
+  { code: "ky", label: "KY" },
+];
+
+export const DEFAULT_LANGUAGE = "en";
+
+export const translations = {
+  en: {
+    "nav.about": "About",
+    "nav.chatbot": "ChatBot",
+    "about.tag": "is currently in beta",
+    "about.title": "First Web AI Kyrgyz Assistant that speaks clear Kyrgyz",
+    "about.subtitle1": "Built for Kyrgyz-speaking users, it delivers natural answers,",
+    "about.subtitle2": "clear pronunciation, and a more human way to interact with AI",
+    "about.subtitle3": "directly in the browser.",
+    "about.cta": "Get Started",
+    "chat.voice": "Voice",
+    "chat.state.idle": "Talk to bot",
+    "chat.state.connecting": "Connecting...",
+    "chat.state.listening": "Listening...",
+    "chat.state.thinking": "Thinking...",
+    "chat.state.speaking": "Bot Speaking...",
+    "chat.state.stop": "Stop",
+    "chat.empty": 'Start the conversation by clicking "Talk to bot"',
+    "chat.you": "You",
+  },
+  ky: {
+    "nav.about": "Биз жөнүндө",
+    "nav.chatbot": "Чат-бот",
+    "about.tag": "азыр бета-версияда",
+    "about.title": "Таза кыргызча сүйлөгөн биринчи веб AI жардамчы",
+    "about.subtitle1": "Кыргыз тилдүү колдонуучулар үчүн түзүлгөн: табигый жооптор,",
+    "about.subtitle2": "так айтылыш жана AI менен адамча баарлашуу",
+    "about.subtitle3": "түз эле браузерде.",
+    "about.cta": "Баштоо",
+    "chat.voice": "Үн",
+    "chat.state.idle": "Бот менен сүйлөшүү",
+    "chat.state.connecting": "Туташууда...",
+    "chat.state.listening": "Угуп жатам...",
+    "chat.state.thinking": "Ойлонуп жатам...",
+    "chat.state.speaking": "Бот сүйлөп жатат...",
+    "chat.state.stop": "Токтотуу",
+    "chat.empty": "Баарлашууну баштоо үчүн «Бот менен сүйлөшүү» баскычын басыңыз",
+    "chat.you": "Сиз",
+  },
+};

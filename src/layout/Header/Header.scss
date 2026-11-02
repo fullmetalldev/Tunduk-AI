@@ -16,5 +16,26 @@
       align-items: center;
       gap: 15px;
     }
+    &_lang {
+      list-style: none;
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      border-radius: var(--border-30);
+      border: 1px solid var(--color-white-40);
+      button {
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--color-white-80);
+        padding: 4px 10px;
+        border-radius: var(--border-30);
+        font-weight: 500;
+        &.active {
+          background: var(--color-white);
+          color: var(--color-black);
+        }
+      }
+    }
   }
 }

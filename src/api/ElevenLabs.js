@@ -4,8 +4,16 @@ const elevenlabs = new ElevenLabsClient({
   apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY,
 });
 
-export const streamToBlob = async (text) => {
-  const stream = await generateElevenTextToSpeech(text);
+// Voices the user can pick for the bot - browse voices at elevenlabs.io/app/voice-library
+export const VOICES = [
+  { id: "xSvb8bez3GCZPLs42u97", name: "Jarvisbek" },
+  { id: "luy1CrV6Ok1pWRBWzIhJ", name: "Mirbek Baike" },
+];
+
+export const DEFAULT_VOICE_ID = VOICES[0].id;
+
+export const streamToBlob = async (text, voiceId = DEFAULT_VOICE_ID) => {
+  const stream = await generateElevenTextToSpeech(text, voiceId);
   const reader = stream.getReader();
   const chunks = [];
   while (true) {
@@ -19,15 +27,15 @@ export const streamToBlob = async (text) => {
   return audioUrl;
 };
 
-export const generateElevenTextToSpeech = async (text) => {
-  const audio = await elevenlabs.textToSpeech.convert(
-    "xSvb8bez3GCZPLs42u97", // "George" - browse voices at elevenlabs.io/app/voice-library
-    {
-      text: text,
-      modelId: "eleven_v3",
-      outputFormat: "mp3_44100_128",
-    },
-  );
+export const generateElevenTextToSpeech = async (
+  text,
+  voiceId = DEFAULT_VOICE_ID,
+) => {
+  const audio = await elevenlabs.textToSpeech.convert(voiceId, {
+    text: text,
+    modelId: "eleven_v3",
+    outputFormat: "mp3_44100_128",
+  });
   return audio;
 };
 

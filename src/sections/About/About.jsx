@@ -1,27 +1,29 @@
 import Button from "../../components/Button/Button";
 import Logo from "../../components/Logo/Logo";
+import { useI18n } from "../../i18n/useI18n";
 import "./About.scss";
 
 const About = () => {
+  const { t } = useI18n();
   return (
     <section className="About">
       <div className="container">
         <div className="About__content">
           <span className="tag">
             <Logo />
-            is currently in beta
+            {t("about.tag")}
           </span>
           <h2 className="About__content_title head-1">
-            First Web AI Kyrgyz Assistant that speaks clear Kyrgyz
+            {t("about.title")}
           </h2>
           <span className="About__content_subtitle sub-1">
-            Built for Kyrgyz-speaking users, it delivers natural answers,
+            {t("about.subtitle1")}
             <br />
-            clear pronunciation, and a more human way to interact with AI
+            {t("about.subtitle2")}
             <br />
-            directly in the browser.
+            {t("about.subtitle3")}
           </span>
-          <Button>Get Started</Button>
+          <Button>{t("about.cta")}</Button>
         </div>
       </div>
     </section>
