@@ -19,10 +19,11 @@ Stack: React 19 + Vite 8 (React Compiler enabled), plain JSX, SCSS per component
 mic ──► ElevenLabs Scribe realtime STT (useScribe, VAD commit, languageCode "ky")
           │ onCommittedTranscript
           ▼
-     OpenAI chat completion (gpt-5-mini, system prompt + chat history)
+     OpenAI chat completion (gpt-5-mini, reasoning_effort "minimal", system prompt + history)
           │ reply text  ("/play song" → plays bundled song instead of TTS)
           ▼
-     ElevenLabs TTS (eleven_v3, selected voice) → blob URL → <audio> in ChatBot
+     ElevenLabs TTS stream (eleven_v4, falls back to eleven_v3, selected voice)
+          → MediaSource URL (plays from the first chunk; blob URL fallback) → <audio> in ChatBot
           │ "ended"
           ▼
      back to "listening"
@@ -40,7 +41,9 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
 - `src/hooks/SpeechToText.jsx` — renderless component wrapping `useScribe`; on commit it
   calls OpenAI, saves history, generates TTS and hands the audio URL to `ChatBot`.
 - `src/api/OpenAI.js` — system prompt + `GptResponse(userText)`.
-- `src/api/ElevenLabs.js` — TTS (`streamToBlob(text, voiceId)`), Scribe token, `VOICES` list.
+- `src/api/ElevenLabs.js` — TTS (`textToSpeechUrl(text, voiceId)`), Scribe token, `VOICES` list.
+- Speech-to-text is Scribe v2 Realtime (no newer STT model exists as of Nov 2026); Kyrgyz is a
+  "Good" tier language (10–20% WER), so recognition is biased with `KEYTERMS` in `SpeechToText.jsx`.
 - `src/lib/chatHistory.js` — conversation memory in `localStorage` (`chatHistory` key),
   trimmed to the last N user/assistant turns.
 - `src/i18n/` — UI translations (`translations.js`: `en`, `ky`), `I18nProvider` (`I18n.jsx`)

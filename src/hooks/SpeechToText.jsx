@@ -2,8 +2,26 @@ import { useScribe, CommitStrategy } from "@elevenlabs/react";
 import { saveChatTurn } from "../lib/chatHistory";
 import { useEffect, useRef } from "react";
 import Song from "../lib/muras_mirbek.mp3";
-import { getElevenAuth, streamToBlob } from "../api/ElevenLabs";
+import { getElevenAuth, textToSpeechUrl } from "../api/ElevenLabs";
 import { GptResponse } from "../api/OpenAI";
+
+// Words Scribe should be biased towards (max 50, up to 20 characters each):
+// the bot's own names and words it tends to mishear in Kyrgyz.
+const KEYTERMS = [
+  "Жарвисбек",
+  "Jarvisbek",
+  "Түндүк",
+  "Tunduk",
+  "Кыргызстан",
+  "Бишкек",
+  "Ош",
+  "Ысык-Көл",
+  "Манас",
+  "ырдап бер",
+  "ыр кой",
+  "саламатсызбы",
+  "рахмат",
+];
 
 function SpeechToText({ botState, setBotState, onAudioGenerated, voiceId }) {
   const isConnectingRef = useRef(false);
@@ -30,11 +48,16 @@ function SpeechToText({ botState, setBotState, onAudioGenerated, voiceId }) {
     modelId: "scribe_v2_realtime",
     languageCode: "ky",
     commitStrategy: CommitStrategy.VAD,
-    vadSilenceThresholdSecs: 1.5,
+    // Shorter pause = the bot answers sooner. Raise it if the bot starts
+    // answering while the user is still mid-sentence.
+    vadSilenceThresholdSecs: 1.0,
     vadThreshold: 0.4,
     minSpeechDurationMs: 100,
     minSilenceDurationMs: 100,
-    includeTimestamps: true,
+    keyterms: KEYTERMS,
+    // Drop "ммм", "ээ" and similar fillers before the text reaches GPT
+    noVerbatim: true,
+    filterBackgroundAudio: true,
     onPartialTranscript: (data) => {
       console.log("Partial:", data.text);
     },
@@ -75,7 +98,7 @@ function SpeechToText({ botState, setBotState, onAudioGenerated, voiceId }) {
       if (botText.includes("/play song")) {
         audioUrl = Song;
       } else {
-        audioUrl = await streamToBlob(botText, voiceIdRef.current);
+        audioUrl = await textToSpeechUrl(botText, voiceIdRef.current);
       }
       if (isStale()) return;
 

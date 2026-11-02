@@ -58,6 +58,10 @@ export const GptResponse = async (userText) => {
   const response = await openai.chat.completions.create({
     model: "gpt-5-mini",
     messages,
+    // Short spoken replies don't need deep reasoning; this cuts response
+    // time from several seconds to about one.
+    reasoning_effort: "minimal",
+    verbosity: "low",
   });
   console.log("GPT RESPONSE", response);
   return response.choices[0].message.content;
