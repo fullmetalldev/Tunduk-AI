@@ -75,5 +75,5 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
 - iOS: audio routed through Web Audio is silent unless its AudioContext is resumed from a
   tap (and the mic can suspend it again), and `play()` after awaits is blocked unless the
   element was played from a tap first. So on iOS the bot's `<audio>` is not routed through
-  Web Audio (no orb volume there), and "Talk to bot" calls `unlockAudioElement()` inside
+  Web Audio (the orb follows a loudness curve decoded separately from the same file), and "Talk to bot" calls `unlockAudioElement()` inside
   the click. iPhone has no `MediaSource`, so speech uses the blob fallback (whole reply).
