@@ -80,13 +80,17 @@ commits while the bot is thinking/speaking (including the bot hearing itself) is
 
 ## Deploy and API keys
 
-- Site: GitHub Pages via `.github/workflows/deploy.yml` on every push to `main`, built with
-  `--base=/<repo-name>/`. It reads only the repo variable `VITE_API_PROXY_URL`.
-- Keys: `worker/` is a Cloudflare Worker that holds `OPENAI_API_KEY` and
-  `ELEVENLABS_API_KEY` as Worker secrets and forwards only the app's requests (chat
-  completions with the model forced to gpt-5-mini, TTS for the listed voices/models, the
-  Scribe single-use token), only for origins in `ALLOWED_ORIGINS`. Deploy it with
-  `cd worker && npx wrangler deploy`. When adding a voice, add it to `VOICE_IDS` there too.
-- `src/api/proxy.js`: the SDKs go through `VITE_API_PROXY_URL`. Only `npm run dev` without
-  it uses `VITE_*_API_KEY` from `.env` directly; the `import.meta.env.DEV && ...` condition
-  is written inline in `OpenAI.js`/`ElevenLabs.js` so production builds drop the keys.
+- Vercel (main site, tunduk-ai.vercel.app): builds the Vite app and serves `api/` as Vercel
+  Functions. `api/_lib/proxy.js` is the API key proxy; the route files only re-export it.
+  It reads `OPENAI_API_KEY` and `ELEVENLABS_API_KEY` from the Vercel project's environment
+  variables and forwards only the app's requests (chat completions with the model forced to
+  gpt-5-mini, TTS for the listed voices/models, the Scribe single-use token), for the site's
+  own origin plus `DEFAULT_ALLOWED_ORIGINS` (or `ALLOWED_ORIGINS`). When adding a voice, add
+  it to `VOICE_IDS` there too.
+- GitHub Pages: `.github/workflows/deploy.yml` on every push to `main`, built with
+  `--base=/<repo-name>/` and calling the Vercel `/api` (repo variable `VITE_API_PROXY_URL`
+  overrides it).
+- `src/api/proxy.js`: the SDKs call `VITE_API_PROXY_URL` or the site's own `/api`. Only
+  `npm run dev` without `VITE_API_PROXY_URL` uses `VITE_*_API_KEY` from `.env` directly (Vite
+  dev has no `/api`); the `import.meta.env.DEV && ...` condition is written inline in
+  `OpenAI.js`/`ElevenLabs.js` so production builds drop the keys.

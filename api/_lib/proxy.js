@@ -1,6 +1,7 @@
-// API key proxy for Tunduk AI. The site runs on GitHub Pages (static files
-// only), so the OpenAI and ElevenLabs keys live here instead of in the
-// browser bundle. Only the few requests the app makes are forwarded.
+// API key proxy for Tunduk AI, run as Vercel Functions (the files under api/
+// re-export this). The OpenAI and ElevenLabs keys live in the Vercel project's
+// environment variables instead of the browser bundle, and only the few
+// requests the app makes are forwarded. Files under api/_lib are not routes.
 
 // Keep in sync with VOICES in src/api/ElevenLabs.js
 const VOICE_IDS = ["xSvb8bez3GCZPLs42u97", "luy1CrV6Ok1pWRBWzIhJ"];
@@ -9,6 +10,12 @@ const OPENAI_MODEL = "gpt-5-mini";
 // A spoken reply is 3-4 sentences; anything far longer is not from the app
 const MAX_TTS_CHARS = 1500;
 const MAX_CHAT_BODY_BYTES = 200_000;
+// Other sites allowed to call the API, besides the site it is deployed with.
+// Override with the ALLOWED_ORIGINS environment variable (comma separated).
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://fullmetalldev.github.io",
+  "http://localhost:5173",
+];
 
 const json = (status, body, headers) =>
   new Response(JSON.stringify(body), {
@@ -91,12 +98,16 @@ const handleScribeToken = (env, cors) =>
   );
 
 export default {
-  async fetch(request, env) {
+  async fetch(request) {
+    const env = process.env;
+    const url = new URL(request.url);
     const origin = request.headers.get("Origin");
-    const allowed = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+    const allowed = env.ALLOWED_ORIGINS
+      ? env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+      : DEFAULT_ALLOWED_ORIGINS;
     // Stops other websites from using the proxy from their pages. It does
     // not stop scripts that fake the header - keep spending limits on.
-    if (!origin || !allowed.includes(origin)) {
+    if (!origin || (origin !== url.origin && !allowed.includes(origin))) {
       return json(403, { error: "Origin not allowed" });
     }
     const cors = corsHeaders(origin, request);
@@ -107,7 +118,8 @@ export default {
       return json(405, { error: "Method not allowed" }, cors);
     }
 
-    const { pathname, search } = new URL(request.url);
+    const { search } = url;
+    const pathname = url.pathname.replace(/^\/api(?=\/)/, "");
     try {
       if (pathname === "/openai/v1/chat/completions") {
         return await handleChat(request, env, cors);

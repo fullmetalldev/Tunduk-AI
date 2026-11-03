@@ -18,4 +18,9 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // Vercel Functions run on the server
+    files: ['api/**/*.js'],
+    languageOptions: { globals: globals.node },
+  },
 ])

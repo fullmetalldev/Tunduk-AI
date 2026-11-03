@@ -1,9 +1,8 @@
-// URL of the API key proxy (the Cloudflare Worker in worker/). OpenAI and
-// ElevenLabs are called through it, so no keys are in the bundle. Only the dev
-// server (`npm run dev`) may use the VITE_*_API_KEY values from .env directly
-// when this is not set; production builds never include them.
-export const API_PROXY_URL = import.meta.env.VITE_API_PROXY_URL?.replace(/\/+$/, "");
-
-if (!API_PROXY_URL && !import.meta.env.DEV) {
-  console.error("VITE_API_PROXY_URL is not set - the bot cannot reach its APIs.");
-}
+// Where the app reaches OpenAI and ElevenLabs: the API key proxy in api/ (Vercel
+// Functions), so no keys are in the bundle. By default it is the /api of the
+// site itself; VITE_API_PROXY_URL points a site hosted elsewhere (GitHub Pages)
+// at it. Only the dev server (`npm run dev`) without VITE_API_PROXY_URL uses the
+// VITE_*_API_KEY values from .env directly; production builds never include them.
+export const API_PROXY_URL = (
+  import.meta.env.VITE_API_PROXY_URL || `${window.location.origin}/api`
+).replace(/\/+$/, "");

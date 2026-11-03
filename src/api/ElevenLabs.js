@@ -1,11 +1,11 @@
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 import { API_PROXY_URL } from "./proxy";
 
-// Through the key proxy (worker/) - see proxy.js. The proxy adds the real
+// Through the key proxy (api/) - see proxy.js. The proxy adds the real
 // key, so the placeholder only keeps the SDK from asking for one. The
 // condition is written inline so production builds drop the key branch.
 const elevenlabs = new ElevenLabsClient(
-  import.meta.env.DEV && !API_PROXY_URL
+  import.meta.env.DEV && !import.meta.env.VITE_API_PROXY_URL
     ? { apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY }
     : { apiKey: "proxy", baseUrl: `${API_PROXY_URL}/elevenlabs` },
 );

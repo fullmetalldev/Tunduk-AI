@@ -3,10 +3,10 @@ import { formatHistoryForOpenAI } from "../lib/chatHistory";
 import { getSystemPrompt } from "./prompts";
 import { API_PROXY_URL } from "./proxy";
 
-// Through the key proxy (worker/) - see proxy.js. The condition is written
+// Through the key proxy (api/) - see proxy.js. The condition is written
 // inline so production builds drop the key branch entirely.
 const openai = new OpenAI({
-  ...(import.meta.env.DEV && !API_PROXY_URL
+  ...(import.meta.env.DEV && !import.meta.env.VITE_API_PROXY_URL
     ? { apiKey: import.meta.env.VITE_OPENAI_API_KEY }
     : { apiKey: "proxy", baseURL: `${API_PROXY_URL}/openai/v1` }),
   dangerouslyAllowBrowser: true,
